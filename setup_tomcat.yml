@@ -1,0 +1,38 @@
+---
+- name: My test playbook
+  hosts: webservers[1]
+  become: true
+  tasks:
+    - name: Installing Java on Red Hat-based systems
+      yum:
+        name: java
+        state: present
+      when: ansible_os_family == "RedHat"
+
+    - name: Installing Java on Debian-based systems
+      apt:
+        name: default-jdk
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Download Tomcat package
+      get_url:
+        url: https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.31/bin/apache-tomcat-10.1.31.tar.gz
+        dest: /opt
+
+    - name: Untar Apache Tomcat package
+      unarchive:
+        src: /opt/apache-tomcat-10.1.31.tar.gz
+        dest: /opt
+        remote_src: yes
+
+    - name: Add execution permission on startup.sh
+      file:
+        path: /opt/apache-tomcat-10.1.31/bin/startup.sh
+        mode: '0755'
+
+    - name: Start Tomcat server
+      shell: nohup ./startup.sh &
+      args:
+        chdir: /opt/apache-tomcat-10.1.31/bin
+
